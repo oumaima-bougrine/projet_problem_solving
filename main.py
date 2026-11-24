@@ -1,5 +1,3 @@
-
-
 from sudoku import Sudoku
 
 # Generer un plateau Sudoku

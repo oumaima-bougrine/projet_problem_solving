@@ -1,24 +1,5 @@
-from sudoku import Sudoku
 from collections import deque
 import time
-
-# Génerer un plateau Sudoku
-puzzle = Sudoku(3).difficulty(0.5)
-
-# Récuperer la grille
-grille = puzzle.board
-
-# Remplacer les cases vides par 0
-grille = [
-    [0 if valeur is None else valeur for valeur in ligne]
-    for ligne in grille
-]
-
-# Afficher la grille
-print("Sudoku initial :")
-
-for ligne in grille:
-    print(ligne)
 
 
 # Initialiser les domaines
@@ -179,117 +160,160 @@ def backtracking():
 
     return False
 
+# Vérifier si les chiffres initiaux sont conservés
+def verifier_chiffres_initiaux(grille, grille_resolue):
 
-
-
-# Les tests
-
-domaines = initialiser_domaines(grille)
-voisins = construire_voisins()
-
-# Tester la fonction initialiser_domaines et la fonction voisin construire_voisins
-print("\nDomaines de la case (0, 1) :")
-print(domaines[(0, 1)])
-
-print("\nVoisins de la case (0, 1) :")
-print(voisins[(0, 1)])
-
-
-# Teste du AC-3
-print("\nApplication de AC-3")
-resultat = AC3(domaines, voisins)
-
-if resultat:
-    print("AC-3 terminé sans contradiction !")
-else:
-    print("Contradiction détectée !")
-
-print("\nDomaines après AC-3 :")
-for i in range(9):
-    for j in range(9):
-        if grille[i][j] == 0:
-            print(f"Case ({i}, {j}) : {domaines[(i, j)]}")
-
-case = choisir_case(domaines)
-
-print("\nCase choisite:", case)
-
-if case is not None:
-    print("Valeurs possibles :", domaines[case])
-
-
-# Vérifier si les valeurs initiales sont modifiées 
-def verifier_chiffres_initiaux(grille_initiale, grille_resolue):
     for i in range(9):
         for j in range(9):
-
-            # Vérifier uniquement les cases déjà remplies
-            if grille_initiale[i][j] != 0:
-
-                if grille_initiale[i][j] != grille_resolue[i][j]:
+            if grille[i][j] != 0:
+                if grille[i][j] != grille_resolue[i][j]:
                     return False
 
     return True
 
 
-# TEST DU BACKTRACKING
+# Les 5 grilles Sudoku pour les tests
 
-# Initialiser les domaines et les voisins
-domaines = initialiser_domaines(grille)
+grilles_tests = [
+
+    # TEST 1 : Sudoku déjà rempli
+    [
+        [5, 3, 4, 6, 7, 8, 9, 1, 2],
+        [6, 7, 2, 1, 9, 5, 3, 4, 8],
+        [1, 9, 8, 3, 4, 2, 5, 6, 7],
+        [8, 5, 9, 7, 6, 1, 4, 2, 3],
+        [4, 2, 6, 8, 5, 3, 7, 9, 1],
+        [7, 1, 3, 9, 2, 4, 8, 5, 6],
+        [9, 6, 1, 5, 3, 7, 2, 8, 4],
+        [2, 8, 7, 4, 1, 9, 6, 3, 5],
+        [3, 4, 5, 2, 8, 6, 1, 7, 9]
+    ],
+
+    # TEST 2 : Sudoku simple
+    [
+        [5, 3, 0, 0, 7, 0, 0, 0, 0],
+        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ],
+
+    # TEST 3 : Sudoku moyen
+    [
+        [0, 0, 0, 2, 6, 0, 7, 0, 1],
+        [6, 8, 0, 0, 7, 0, 0, 9, 0],
+        [1, 9, 0, 0, 0, 4, 5, 0, 0],
+        [8, 2, 0, 1, 0, 0, 0, 4, 0],
+        [0, 0, 4, 6, 0, 2, 9, 0, 0],
+        [0, 5, 0, 0, 0, 3, 0, 2, 8],
+        [0, 0, 9, 3, 0, 0, 0, 7, 4],
+        [0, 4, 0, 0, 5, 0, 0, 3, 6],
+        [7, 0, 3, 0, 1, 8, 0, 0, 0]
+    ],
+
+    # TEST 4 : Sudoku difficile
+    [
+        [0, 0, 0, 0, 0, 0, 0, 1, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 9, 5, 0, 0, 0],
+        [0, 0, 0, 5, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ],
+
+    # TEST 5 : Sudoku impossible (contradiction)
+    [
+        [5, 5, 0, 0, 7, 0, 0, 0, 0],
+        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ]
+]
+
+
 voisins = construire_voisins()
 
-print("TEST DU BACKTRACKING")
+for numero, grille_test in enumerate(grilles_tests, start=1):
 
-print("\nApplication de AC-3 et Backtracking")
+    print("TEST", numero)
 
-# Initialiser le compteur
-etats_explores = 0
+    grille = [ligne.copy() for ligne in grille_test]
 
-# Démarrer le chronomètre
-debut = time.perf_counter()
-
-# Lancer la résolution
-resultat = backtracking()
-
-# Arrêter le chronomètre
-fin = time.perf_counter()
-
-# Calculer le temps d'exécution
-temps_execution = fin - debut
-
-if resultat:
-
-    print("\nSudoku résolu avec succès !")
-
-    # Transformer les domaines en grille Sudoku
-    grille_resolue = []
-
-    for i in range(9):
-        ligne = []
-
-        for j in range(9):
-            valeur = next(iter(domaines[(i, j)]))
-            ligne.append(valeur)
-
-        grille_resolue.append(ligne)
-
-    # Afficher le Sudoku final
-    print("\nSudoku résolu :")
-
-    for ligne in grille_resolue:
+    print("\nSudoku initial :")
+    for ligne in grille:
         print(ligne)
 
-    # Vérifier les chiffres initiaux
-    if verifier_chiffres_initiaux(grille, grille_resolue):
-        print("Les chiffres initiaux sont conservés !")
+    # Initialisation des domaines
+    domaines = initialiser_domaines(grille)
+
+    print("\nDomaines avant AC-3 :")
+    for i in range(9):
+        for j in range(9):
+            if grille[i][j] == 0:
+                print(f"Case ({i}, {j}) : {sorted(domaines[(i, j)])}")
+
+    # Application de AC-3
+    debut_ac3 = time.perf_counter()
+    resultat_ac3 = AC3(domaines, voisins)
+    fin_ac3 = time.perf_counter()
+
+    print("\nAC-3 a réussi :", resultat_ac3)
+
+    print("\nDomaines après AC-3 :")
+    for i in range(9):
+        for j in range(9):
+            if grille[i][j] == 0:
+                print(f"Case ({i}, {j}) : {sorted(domaines[(i, j)])}")
+
+    print("\nTemps d'exécution AC-3 :", round(fin_ac3 - debut_ac3, 6), "secondes")
+
+    # Choix de la case avec MRV
+    case = choisir_case(domaines)
+
+    print("\nCase choisie par MRV :", case)
+
+    if case is not None:
+        print("Valeurs possibles :", sorted(domaines[case]))
+
+    # Résolution avec Backtracking
+    etats_explores = 0
+
+    debut = time.perf_counter()
+    resultat = backtracking()
+    fin = time.perf_counter()
+
+    temps_execution = fin - debut
+
+    if resultat:
+        print("\nSudoku résolu avec succès !")
+
+        grille_resolue = [
+            [next(iter(domaines[(i, j)])) for j in range(9)]
+            for i in range(9)
+        ]
+
+        print("\nSudoku résolu :")
+        for ligne in grille_resolue:
+            print(ligne)
+
+        print("Chiffres initiaux conservés :", verifier_chiffres_initiaux(grille, grille_resolue))
+
     else:
-        print("Erreur : un chiffre initial a été modifié !")
+        print("\nAucune solution trouvée !")
 
-else:
-    print("\nAucune solution trouvée !")
+    print("\nTemps total de résolution :", round(temps_execution, 6), "secondes")
+    print("Nombre d'états explorés :", etats_explores)
 
-# Afficher les performances
-print("EVALUATION DES PERFORMANCES")
-
-print("Temps d'exécution :", round(temps_execution, 6), "secondes")
-print("Nombre d'états explorés :", etats_explores)
+print("\nFIN DES TESTS")

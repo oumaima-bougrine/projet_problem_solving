@@ -104,7 +104,7 @@ def sudoku_resolu(domaines):
     return True
 
 
-# Choisir la prochaine case (avec le plus petit domaine)
+# Choisir la prochaine case avec MRV (avec le plus petit domaine)
 def choisir_case(domaines):
 
     meilleure_case = None
